@@ -1,37 +1,56 @@
 import requests
 from bs4 import BeautifulSoup
-
-def convert_string(temp):
-    for i in range(len(temp) - 1):
-        if temp[i] == ' ':
-            temp = temp[0:i] + '+' + temp[i + 1:len(temp)]
-    return temp
+from enum import Enum
 
 baseData = "https://google.com/search?q="
 
-myTeam = input("My Team:\n")
-opTeam = input("The Opposing Team:\n")
+class updateFlags(Enum):
+    MYTEAMSCORED = 0
+    OPTEAMSCORED = 1
+    HALFTIME = 2
+    FULLTIME = 3
 
-#for debugging purposes
-myTeam = convert_string(myTeam)
-opTeam = convert_string(opTeam)
+class game:
+    myTeam = opTeam = searchString = time = ""
+    myScore = opScore = 0
 
-myTeam = "Flamengo"
-opTeam = "Juventude"
-searchString = baseData + myTeam + "+vs+" + opTeam
-response = requests.get(searchString)
+    def __init__(self, team1, team2):
+        self.myTeam = team1
+        self.opTeam = team2
+        self.searchString = baseData + team1 + "+vs+" + team2
+        self.update()
 
-print(searchString)
-soup = BeautifulSoup(response.text, 'html.parser')
-scores = soup.find_all("div", class_='BNeawe deIvCb AP7Wnd')
-teams = soup.find_all("div", class_ = 'BNeawe s3v9rd AP7Wnd lRVwie')
+    def update(self):
+        updated = [0, 0, 0, 0]
+        response = requests.get(self.searchString)
 
-time = teams[0].text
-team1 = teams[1].text
-team2 = teams[2].text
-score1 = scores[1].text
-score2 = scores[2].text
+        #print(searchString)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        scores = soup.find_all("div", class_='BNeawe deIvCb AP7Wnd')
+        teams = soup.find_all("div", class_='BNeawe s3v9rd AP7Wnd lRVwie')
 
-print("Time: " + time)
-print(team1 + ": " + score1)
-print(team2 + ": " + score2)
+        #haven't checked the actual halftime syntax yet
+        if (teams[0].text == "Halftime"):
+            updated[updateFlags.HALFTIME.value] = 1
+        elif (teams[0].text != "Live"):
+            updated[updateFlags.FULLTIME.value] = 1
+        self.time = teams[0].text
+        if(self.myTeam == teams[1].text):
+            if(self.myScore < int(scores[1].text)):
+                updated[updateFlags.MYTEAMSCORED.value] = 1
+            self.myScore = int(scores[1].text)
+            if(self.opScore < int(scores[2].text)):
+                updated[updateFlags.OPTEAMSCORED.value] = 1
+            self.opScore = int(scores[2].text)
+
+        else:
+            if (self.myScore < int(scores[1].text)):
+                updated[updateFlags.MYTEAMSCORED.value] = 1
+            self.myScore = int(scores[2].text)
+            if (self.opScore < int(scores[2].text)):
+                updated[updateFlags.OPTEAMSCORED.value] = 1
+            self.opScore = int(scores[1].text)
+
+            return updated
+
+
