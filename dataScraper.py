@@ -11,17 +11,19 @@ class updateFlags(Enum):
     FULLTIME = 3
 
 class game:
-    myTeam = opTeam = searchString = time = ""
+    myTeam = opTeam = searchString = time = tID = ""
     myScore = opScore = 0
+    updated = [0, 0, 0, 0]
 
-    def __init__(self, team1, team2):
+    def __init__(self, team1, team2, threadID):
         self.myTeam = team1
         self.opTeam = team2
+        self.tID = threadID
         self.searchString = baseData + team1 + "+vs+" + team2
         self.update()
 
     def update(self):
-        updated = [0, 0, 0, 0]
+        self.updated = [0, 0, 0, 0]
         response = requests.get(self.searchString)
 
         #print(searchString)
@@ -31,26 +33,26 @@ class game:
 
         #haven't checked the actual halftime syntax yet
         if (teams[0].text == "Halftime"):
-            updated[updateFlags.HALFTIME.value] = 1
-        elif (teams[0].text != "Live"):
-            updated[updateFlags.FULLTIME.value] = 1
+            self.updated[updateFlags.HALFTIME.value] = 1
+        elif (teams[0].text[0:5] == "Final" or teams[0].text[0:4] == "Full"):
+            self.updated[updateFlags.FULLTIME.value] = 1
         self.time = teams[0].text
         if(self.myTeam == teams[1].text):
             if(self.myScore < int(scores[1].text)):
-                updated[updateFlags.MYTEAMSCORED.value] = 1
+                self.updated[updateFlags.MYTEAMSCORED.value] = 1
             self.myScore = int(scores[1].text)
             if(self.opScore < int(scores[2].text)):
-                updated[updateFlags.OPTEAMSCORED.value] = 1
+                self.updated[updateFlags.OPTEAMSCORED.value] = 1
             self.opScore = int(scores[2].text)
 
         else:
-            if (self.myScore < int(scores[1].text)):
-                updated[updateFlags.MYTEAMSCORED.value] = 1
+            if (self.myScore < int(scores[2].text)):
+                self.updated[updateFlags.MYTEAMSCORED.value] = 1
             self.myScore = int(scores[2].text)
-            if (self.opScore < int(scores[2].text)):
-                updated[updateFlags.OPTEAMSCORED.value] = 1
+            if (self.opScore < int(scores[1].text)):
+                self.updated[updateFlags.OPTEAMSCORED.value] = 1
             self.opScore = int(scores[1].text)
 
-            return updated
+        return self.updated
 
 
