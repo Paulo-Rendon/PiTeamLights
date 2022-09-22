@@ -66,6 +66,9 @@ def main():
     print("The program will run until the user cancels the program")
     command = input("Do you want to end the program? Y/N")
     while(command != "Y"):
+        for thread in threads:
+            if not thread.is_alive():
+                threads.remove(thread)
         pass
 
 main()
