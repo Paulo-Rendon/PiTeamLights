@@ -13,6 +13,8 @@ from kivy.uix.image import Image
 from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
 from kivy.uix.popup import Popup
+import gameHandler
+from functools import partial
 
 class SayHello(App):
     def build(self):
@@ -60,31 +62,58 @@ class SayHello(App):
         addGameLayout.cols = 2
         yourTeamText = Label(text='Your Team:',
                              font_size=14,
-                             size_hint=(0.5, 0.5))
+                             size_hint=(0.5, 0.1))
         opTeamText = Label(text='Opposing Team',
                            font_size=14,
-                           size_hint=(0.5, 0.5))
-        yourTeam = TextInput(
+                           size_hint=(0.5, 0.1))
+        self.yourTeam = TextInput(
                     multiline=False,
                     padding_y = (20,20),
-                    size_hint=(1, 0.5)
+                    size_hint=(0.5, 0.1)
                     )
-        opTeam = TextInput(
+        self.opTeam = TextInput(
                     multiline=False,
                     padding_y = (20,20),
-                    size_hint=(1, 0.5)
-                    )
+                    size_hint=(0.5, 0.1)
+        )
+        subButton = Button(
+                        text="submit",
+                        size_hint=(0.1, 0.1),
+                        #pos_hint={"center_x": 0.9, "y":1},
+                        bold=True,
+                        background_color = "#00FFCE",
+                        #This makes the button color more close to color specified
+                        background_normal=""
+                        )
+        #buttonCallBack = lambda yourTeam, opTeam: self.addGameToScreen(yourTeam, opTeam)
+        subButton.bind(on_press = self.addGameToScreen)
+        exitButton = Button(
+                        text="close",
+                        size_hint=(0.1, 0.1),
+                        #pos_hint={"center_x": 0.9, "y":1},
+                        bold=True,
+                        background_color = "#00FFCE",
+                        #This makes the button color more close to color specified
+                        background_normal=""
+                        )
+        exitButton.bind(on_press = lambda arg : self.addGame.dismiss())
         addGameLayout.add_widget(yourTeamText)
         addGameLayout.add_widget(opTeamText)
-        addGameLayout.add_widget(yourTeam)
-        addGameLayout.add_widget(opTeam)
+        addGameLayout.add_widget(self.yourTeam)
+        addGameLayout.add_widget(self.opTeam)
+        addGameLayout.add_widget(subButton)
+        addGameLayout.add_widget(exitButton)
         #self.greeting.text = "Hello " + self.user.text + "!"
-        addGame = Popup(title='Add Game',
+        self.addGame = Popup(title='Add Game',
                       content=addGameLayout,
                       size_hint=(None, None), size=(400, 400))
 
-        addGame.open()
+        self.addGame.open()
 
+    def addGameToScreen(self, instance):
+        gameHandler.addingGame(self.yourTeam.text, self.opTeam.text)
+        self.addGame.dismiss()
+        return
 
 def main():
     SayHello().run()
