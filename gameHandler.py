@@ -50,22 +50,23 @@ def gameRunning(myTeam, opTeam):
                 print("Leaving game " + str(index))
 
 
-def main():
-    command = input("Is there more teams to add? (Y/N)")
-    while(command == "Y"):
-        myTeam = input("My Team:\n")
-        opTeam = input("The Opposing Team:\n")
-        myTeam = convert_string(myTeam)
-        opTeam = convert_string(opTeam)
+def addingGame(myTeam, opTeam):
+    #command = input("Is there more teams to add? (Y/N)")
+    #while(command == "Y"):
+        #myTeam = input("My Team:\n")
+        #opTeam = input("The Opposing Team:\n")
+        #myTeam = convert_string(myTeam)
+        #opTeam = convert_string(opTeam)
         t = threading.Thread(target=gameRunning, args=(myTeam, opTeam,))
         t.daemon = True
         t.start()
         threads.append(t)
-        command = input("Is there more teams to add? (Y/N)")
+        #command = input("Is there more teams to add? (Y/N)")
 
-    print("The program will run until the user cancels the program")
-    command = input("Do you want to end the program? Y/N")
-    while(command != "Y"):
+    #print("The program will run until the user cancels the program")
+    #command = input("Do you want to end the program? Y/N")
+    #while(command != "Y")
+        for thread in threads:
+            if not thread.is_alive():
+                threads.remove(thread)
         pass
-
-main()
