@@ -36,7 +36,7 @@ Builder.load_string('''
             radius: [(40, 40), (40, 40), (40, 40), (40, 40)]
 ''')
 
-class GreyGrid(GridLayout):
+class GreyGrid(BoxLayout):
     pass
 #The main class obj created for display
 class appDisplay(App):
@@ -57,6 +57,7 @@ class appDisplay(App):
         #side margin 60%, top bottom margin 70%
         self.grid.size_hint = (0.6, 0.7)
         self.grid.pos_hint = {"center_x":0.5, "center_y":0.5}
+        self.gameID = 0
 
         #add widgets to window
         self.button = Button(
@@ -152,12 +153,25 @@ class appDisplay(App):
 
         # Build a game Container (setup for dubugging using hard values)
         gameContainer = GreyGrid()
-        gameContainer.rows = 2
+        scoreContainer = GridLayout()
+        gameContainer.orientation = "vertical"
+        scoreContainer.rows = 2
+        gameContainer.posLst = self.gameID
+        self.gameID = self.gameID + 1
 
-        yourTeamText = Label(text=str(self.yourTeam.text),
+        remButton = Button(
+            text="X",
+            size_hint=(0.1, 0.1),
+            pos_hint={"center_x": 0.9, "y": 1},
+            bold=True
+        )
+        remButton.bind(on_press = partial(self.remGame, gameContainer.posLst))
+        gameContainer.add_widget(remButton)
+
+        gameContainer.yourTeamText = Label(text=str(self.yourTeam.text),
                              font_size=14,
                              size_hint=(0.5, 0.1))
-        opTeamText = Label(text=str(self.opTeam.text),
+        gameContainer.opTeamText = Label(text=str(self.opTeam.text),
                            font_size=14,
                            size_hint=(0.5, 0.1))
         gameContainer.yourTeamScore = Label(text=str(vals[0]),
@@ -175,13 +189,14 @@ class appDisplay(App):
                      size_hint=(0.5, 0.1))
 
         # Add objects to layout
-        gameContainer.add_widget(yourTeamText)
-        gameContainer.add_widget(gameContainer.time)
-        gameContainer.add_widget(opTeamText)
-        gameContainer.add_widget(gameContainer.yourTeamScore)
-        gameContainer.add_widget(dash)
-        gameContainer.add_widget(gameContainer.opTeamScore)
+        scoreContainer.add_widget(gameContainer.yourTeamText)
+        scoreContainer.add_widget(gameContainer.time)
+        scoreContainer.add_widget(gameContainer.opTeamText)
+        scoreContainer.add_widget(gameContainer.yourTeamScore)
+        scoreContainer.add_widget(dash)
+        scoreContainer.add_widget(gameContainer.opTeamScore)
 
+        gameContainer.add_widget(scoreContainer)
         # Add layout to gameContainers list and to grid
         self.gameContainers.append(gameContainer)
         self.grid.add_widget(gameContainer)
@@ -221,11 +236,36 @@ class appDisplay(App):
             self.gameContainers[i].yourTeamScore.text = str(games[i].myScore)
             self.gameContainers[i].opTeamScore.text = str(games[i].opScore)
             self.gameContainers[i].time.text = games[i].time
+            self.gameContainers[i].yourTeamText.text = games[i].myTeam
+            self.gameContainers[i].opTeamText.text = games[i].opTeam
+
+            # Here is where I would call the lights function using the games update array
+            # I will make a seperate function to handle this, but I will work on this part in the future
+            # Especially when I can get my hands on a breadboard and programmable lights
             print(games[i].time)
             print(self.gameContainers[i])
         print("Been a minute!")
 
         return
+
+    def remGame(self, i, instance):
+
+        #Issue with the pos value, might not want to call it in a function call
+        #I think the value gets hardcoded on button binding, so changes to the posLst after binding dont carry
+
+        if(debug):
+            print("removing game at " + str(i))
+        for j in range(len(self.gameContainers)):
+            if(debug):
+                print("Game " + str(self.gameContainers[j].posLst) + " is not " + str(i))
+            if(self.gameContainers[j].posLst == i):
+                self.grid.remove_widget(self.gameContainers[j])
+                del self.gameContainers[j]
+                self.gamehandler.removeGame(j)
+                self.updateScreen()
+                return
+        if(debug):
+            print("Couldn't find the game too be removed. Trying to remove game " + str(i))
 
 
 def main():

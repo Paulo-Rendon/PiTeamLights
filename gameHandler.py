@@ -83,3 +83,6 @@ class gameHandler:
 
     def returnGames(self):
         return self.games
+
+    def removeGame(self, i):
+        del self.games[i]
